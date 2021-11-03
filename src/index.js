@@ -12,6 +12,24 @@ const typeDefs = gql`
 		email: String!
 		avatar: String
 	}
+
+	type TaskList {
+		id: ID!
+		title: String!
+		progress: Float!
+		createdAt: String!
+
+		users: [User!]!
+		todo: [Todo!]!
+	}
+
+	type Todo {
+		id: ID!
+		content: String!
+		isCompleted: Boolean!
+
+		taskList: TaskList!
+	}
 `
 
 const resolvers = {}
