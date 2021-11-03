@@ -1,8 +1,13 @@
 const { ApolloServer, gql } = require('apollo-server')
+const dotenv = require('dotenv')
+const { MongoClient } = require('mongodb')
+dotenv.config()
+
+const { DB_NAME, DB_URI } = process.env
 
 const books = [
 	{
-		title: 'The Awakening',
+		title: 'The Awakening of Jai',
 		author: 'Kate Chopin',
 	},
 	{
@@ -39,15 +44,40 @@ const typeDefs = gql`
 // schema. This resolver retrieves books from the "books" array above.
 const resolvers = {
 	Query: {
-		books: () => books,
+		books: (root, data, context) => {
+			console.log(context)
+			return books
+		},
 	},
 }
 
-// The ApolloServer constructor requires two parameters: your schema
-// definition and your set of resolvers.
-const server = new ApolloServer({ typeDefs, resolvers })
+const start = async () => {
+	const uri = DB_URI
+	const client = new MongoClient(uri, {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	})
+	client.connect((err) => {
+		const collection = client.db('test').collection('devices')
+		// perform actions on the collection object
+		client.close()
+	})
 
-// The `listen` method launches a web server.
-server.listen().then(({ url }) => {
-	console.log(`🚀  Server ready at ${url}`)
-})
+	const db = client.db(DB_NAME)
+	console.log(`${db.namespace} is alive!`)
+
+	const context = {
+		db,
+	}
+
+	// The ApolloServer constructor requires two parameters: your schema
+	// definition and your set of resolvers.
+	const server = new ApolloServer({ typeDefs, resolvers, context })
+
+	// The `listen` method launches a web server.
+	server.listen().then(({ url }) => {
+		console.log(`🚀  Server ready at ${url}`)
+	})
+}
+
+start()
