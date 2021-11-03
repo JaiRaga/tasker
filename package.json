@@ -1,0 +1,19 @@
+{
+	"name": "tasker",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "node src/index.js",
+		"dev": "nodemon src/index.js"
+	},
+	"author": "raga jai santhosh",
+	"license": "ISC",
+	"dependencies": {
+		"apollo-server": "^3.4.0",
+		"graphql": "^15.7.2"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.14"
+	}
+}
