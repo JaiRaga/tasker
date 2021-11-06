@@ -1,11 +1,38 @@
 const { ApolloServer, gql } = require('apollo-server')
 const dotenv = require('dotenv')
 const { MongoClient } = require('mongodb')
+const bcrypt = require('bcryptjs')
 dotenv.config()
 
 const { DB_NAME, DB_URI } = process.env
 
 const typeDefs = gql`
+	type Query {
+		myTaskLists: [TaskList!]!
+	}
+
+	type Mutation {
+		signUp(input: SignUpInput): AuthUser!
+		signIn(input: SignInInput): AuthUser!
+	}
+
+	input SignUpInput {
+		email: String!
+		password: String!
+		name: String!
+		avatar: String
+	}
+
+	input SignInInput {
+		email: String!
+		password: String!
+	}
+
+	type AuthUser {
+		user: User!
+		token: String!
+	}
+
 	type User {
 		id: ID!
 		name: String!
@@ -32,7 +59,25 @@ const typeDefs = gql`
 	}
 `
 
-const resolvers = {}
+const resolvers = {
+	Query: {
+		myTaskLists: () => [],
+	},
+	Mutation: {
+		// signUp: (root, data, context) => {}
+		signUp: async (_, { input }, { db }) => {
+			const hashedPassword = bcrypt.hashSync(input.password)
+			const user = {
+				...input,
+				password: hashedPassword,
+			}
+			// Save to db
+			const result = await db.collection('Users').insertOne(user)
+			console.log(result)
+		},
+		signIn: () => {},
+	},
+}
 
 const start = async () => {
 	const uri = DB_URI
@@ -40,14 +85,10 @@ const start = async () => {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
 	})
-	client.connect((err) => {
-		const collection = client.db('test').collection('devices')
-		// perform actions on the collection object
-		client.close()
-	})
+	client.connect()
 
 	const db = client.db(DB_NAME)
-	console.log(`${db.namespace} is alive!`)
+	console.log(`******* ${db.namespace} is alive! *******`)
 
 	const context = {
 		db,
